@@ -21,19 +21,28 @@ function getAllowedOrigins() {
   return [...new Set([...configured, ...DEFAULT_ALLOWED_ORIGINS])];
 }
 
-function setCorsHeaders(req, res) {
+function getCorsOrigin(req) {
   const requestOrigin = req.headers.origin;
+  if (!requestOrigin) return null;
   const allowedOrigins = getAllowedOrigins();
-  const allowOrigin =
-    requestOrigin && allowedOrigins.includes(requestOrigin)
-      ? requestOrigin
-      : allowedOrigins[0];
+  return allowedOrigins.includes(requestOrigin) ? requestOrigin : null;
+}
 
-  res.setHeader("Access-Control-Allow-Origin", allowOrigin);
-  res.setHeader("Vary", "Origin");
+function setCorsHeaders(req, res) {
+  const allowOrigin = getCorsOrigin(req);
+  if (allowOrigin) {
+    res.setHeader("Access-Control-Allow-Origin", allowOrigin);
+    res.setHeader("Vary", "Origin");
+  }
+
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Max-Age", "86400");
+}
+
+function isOriginAllowed(req) {
+  if (!req.headers.origin) return true;
+  return Boolean(getCorsOrigin(req));
 }
 
 function isObject(value) {
@@ -133,6 +142,10 @@ async function forwardToOpenLearning(event) {
 module.exports = async function handler(req, res) {
   setCorsHeaders(req, res);
 
+  if (!isOriginAllowed(req)) {
+    return res.status(403).json({ error: "Origin not allowed" });
+  }
+
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
@@ -140,6 +153,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+
 
   const errors = validateProgressEvent(req.body);
   if (errors.length) {
