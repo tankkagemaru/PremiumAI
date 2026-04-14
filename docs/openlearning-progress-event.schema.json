@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://premiumlanguagecentre.com/schemas/openlearning-progress-event.schema.json",
+  "title": "OpenLearning Progress Event (PLC POC)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "studentId",
+    "activityId",
+    "sessionId",
+    "eventType",
+    "timestamp",
+    "payload"
+  ],
+  "properties": {
+    "studentId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "activityId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sessionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "chat_submitted",
+        "feedback_viewed",
+        "practice_answered",
+        "session_completed"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "inputText": {
+          "type": "string"
+        },
+        "correctedText": {
+          "type": "string"
+        },
+        "cefrEstimate": {
+          "type": "string",
+          "enum": ["A1", "A2", "B1", "B2", "C1", "C2"]
+        },
+        "grammarIssueCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pronunciationWordCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "responseLatencyMs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
