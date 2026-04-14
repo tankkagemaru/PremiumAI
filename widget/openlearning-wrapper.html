@@ -148,6 +148,12 @@
 
       const sessionId = `sess_${crypto.randomUUID()}`;
 
+      const API_BASE_URL = (window.PLC_API_BASE_URL || "").replace(/\/$/, "") || window.location.origin;
+
+      function apiUrl(path) {
+        return `${API_BASE_URL}${path}`;
+      }
+
       function setStatus(message, isError = false) {
         statusEl.textContent = message;
         statusEl.style.color = isError ? "#b91c1c" : "#0f172a";
