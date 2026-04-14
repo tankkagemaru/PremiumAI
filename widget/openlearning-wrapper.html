@@ -104,7 +104,6 @@
     <div class="plc-widget">
       <h3>PLC AI Language Tutor</h3>
       <div class="meta">Practice grammar, pronunciation, and fluency.</div>
-      <div class="meta">Set <code>window.PLC_API_BASE_URL</code> before this widget script when embedded cross-domain.</div>
 
       <input id="studentId" placeholder="Student ID (e.g. st_102)" />
       <input id="activityId" placeholder="OpenLearning Activity ID" />
@@ -171,12 +170,12 @@
 
       async function trackProgress({ studentId, activityId, eventType, payload }) {
         try {
-          await fetch(apiUrl("/api/progress"), {
+          await fetch("/api/progress", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              studentId: studentId || "guest_student",
-              activityId: activityId || "openlearning_activity",
+              studentId,
+              activityId,
               sessionId,
               eventType,
               timestamp: new Date().toISOString(),
@@ -193,8 +192,8 @@
         const activityId = document.getElementById("activityId").value.trim();
         const message = document.getElementById("message").value.trim();
 
-        if (!message) {
-          setStatus("Please enter a message first.", true);
+        if (!studentId || !activityId || !message) {
+          setStatus("Please fill in Student ID, Activity ID, and message.", true);
           return;
         }
 
@@ -205,13 +204,13 @@
         const start = performance.now();
 
         try {
-          const response = await fetch(apiUrl("/api/chat"), {
+          const response = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               message,
-              studentId: studentId || "guest_student",
-              activityId: activityId || "openlearning_activity",
+              studentId,
+              activityId,
               sessionId,
             }),
           });
@@ -232,8 +231,8 @@
           setStatus("Done! Review feedback below.");
 
           await trackProgress({
-            studentId: studentId || "guest_student",
-            activityId: activityId || "openlearning_activity",
+            studentId,
+            activityId,
             eventType: "chat_submitted",
             payload: {
               inputText: message,

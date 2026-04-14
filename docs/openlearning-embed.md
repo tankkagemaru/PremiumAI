@@ -7,7 +7,7 @@ Set the Vercel backend URL explicitly before loading the widget script:
 
 ```html
 <script>
-  window.PLC_API_BASE_URL = "https://premium-ai-dusky.vercel.app";
+  window.PLC_API_BASE_URL = "https://YOUR-PROJECT.vercel.app";
 </script>
 ```
 
