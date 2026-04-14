@@ -17,3 +17,14 @@ Then include the widget HTML/JS. The widget code uses:
 - `${PLC_API_BASE_URL}/api/progress`
 
 If `PLC_API_BASE_URL` is not provided, it falls back to `window.location.origin` for local/same-origin testing.
+
+## Required Vercel environment variables
+
+- `OPENAI_API_KEY` (required)
+- `OPENLEARNING_ORIGIN` (recommended; set to OpenLearning + your own host origins)
+
+## Optional environment variables
+
+- `OPENLEARNING_WEBHOOK_URL` (if you want `/api/progress` to forward upstream)
+- `OPENLEARNING_API_KEY` (if upstream webhook requires bearer auth)
+- `OPENAI_MODEL` (defaults to `gpt-5.3-codex`)
