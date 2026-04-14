@@ -1,9 +1,14 @@
 const crypto = require("crypto");
 const OpenAI = require("openai");
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let client;
+
+function getClient() {
+  if (!client) {
+    client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return client;
+}
 
 function setCorsHeaders(_req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -51,7 +56,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const response = await client.responses.create({
+    const response = await getClient().responses.create({
       model: process.env.OPENAI_MODEL || "gpt-5.3-codex",
       input: [
         {
