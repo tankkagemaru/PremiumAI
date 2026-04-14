@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PLC AI Language Tutor</title>
+    <style>
+      :root {
+        --plc-primary: #134074;
+        --plc-accent: #0b2545;
+        --plc-bg: #f8fbff;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, Arial, sans-serif;
+        background: transparent;
+      }
+
+      .plc-widget {
+        width: min(100%, 500px);
+        box-sizing: border-box;
+        margin: 0 auto;
+        padding: 14px;
+        border: 1px solid #d9e3f0;
+        border-radius: 12px;
+        background: var(--plc-bg);
+        color: #1f2937;
+      }
+
+      .plc-widget h3 {
+        margin: 0 0 8px;
+        color: var(--plc-accent);
+        font-size: 18px;
+      }
+
+      .meta {
+        margin-bottom: 10px;
+        font-size: 12px;
+      }
+
+      textarea,
+      input,
+      button {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+
+      textarea,
+      input {
+        border: 1px solid #cbd5e1;
+        padding: 10px;
+        margin: 5px 0;
+        background: #fff;
+      }
+
+      button {
+        border: none;
+        background: var(--plc-primary);
+        color: #fff;
+        padding: 10px;
+        margin-top: 8px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .status {
+        margin-top: 10px;
+        font-size: 13px;
+      }
+
+      .card {
+        margin-top: 12px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        padding: 10px;
+      }
+
+      .card h4 {
+        margin: 0 0 8px;
+        color: var(--plc-accent);
+        font-size: 14px;
+      }
+
+      ul {
+        margin: 6px 0 0 18px;
+        padding: 0;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="plc-widget">
+      <h3>PLC AI Language Tutor</h3>
+      <div class="meta">Practice grammar, pronunciation, and fluency.</div>
+      <div class="meta">Set <code>window.PLC_API_BASE_URL</code> before this widget script when embedded cross-domain.</div>
+
+      <input id="studentId" placeholder="Student ID (e.g. st_102)" />
+      <input id="activityId" placeholder="OpenLearning Activity ID" />
+      <textarea id="message" rows="5" placeholder="Type your English sentence or paragraph here..."></textarea>
+      <button id="sendBtn">Check my English</button>
+
+      <div id="status" class="status"></div>
+
+      <section id="results" class="hidden">
+        <div class="card">
+          <h4>Corrected sentence</h4>
+          <div id="correctedText"></div>
+        </div>
+
+        <div class="card">
+          <h4>Grammar feedback</h4>
+          <ul id="grammarNotes"></ul>
+        </div>
+
+        <div class="card">
+          <h4>Pronunciation (sounds-like)</h4>
+          <ul id="pronunciationGuide"></ul>
+        </div>
+
+        <div class="card">
+          <h4>Practice question</h4>
+          <div id="followUpQuestion"></div>
+          <div id="cefrEstimate" style="margin-top: 8px; font-size: 12px"></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const sendBtn = document.getElementById("sendBtn");
+      const statusEl = document.getElementById("status");
+      const resultsEl = document.getElementById("results");
+      const correctedTextEl = document.getElementById("correctedText");
+      const grammarNotesEl = document.getElementById("grammarNotes");
+      const pronunciationGuideEl = document.getElementById("pronunciationGuide");
+      const followUpQuestionEl = document.getElementById("followUpQuestion");
+      const cefrEstimateEl = document.getElementById("cefrEstimate");
+
+      const sessionId = `sess_${crypto.randomUUID()}`;
+
+      const API_BASE_URL = (window.PLC_API_BASE_URL || "").replace(/\/$/, "") || window.location.origin;
+
+      function apiUrl(path) {
+        return `${API_BASE_URL}${path}`;
+      }
+
+      function setStatus(message, isError = false) {
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? "#b91c1c" : "#0f172a";
+      }
+
+      function renderList(target, items, formatter) {
+        target.innerHTML = "";
+        items.forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = formatter(item);
+          target.appendChild(li);
+        });
+      }
+
+      async function trackProgress({ studentId, activityId, eventType, payload }) {
+        try {
+          await fetch(apiUrl("/api/progress"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              studentId,
+              activityId,
+              sessionId,
+              eventType,
+              timestamp: new Date().toISOString(),
+              payload,
+            }),
+          });
+        } catch (error) {
+          console.warn("Progress tracking failed", error);
+        }
+      }
+
+      sendBtn.addEventListener("click", async () => {
+        const studentId = document.getElementById("studentId").value.trim();
+        const activityId = document.getElementById("activityId").value.trim();
+        const message = document.getElementById("message").value.trim();
+
+        if (!studentId || !activityId || !message) {
+          setStatus("Please fill in Student ID, Activity ID, and message.", true);
+          return;
+        }
+
+        sendBtn.disabled = true;
+        setStatus("Checking your English...");
+        resultsEl.classList.add("hidden");
+
+        const start = performance.now();
+
+        try {
+          const response = await fetch(apiUrl("/api/chat"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message,
+              studentId,
+              activityId,
+              sessionId,
+            }),
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || "Unable to fetch tutor response");
+          }
+
+          correctedTextEl.textContent = data.tutor.correctedText;
+          followUpQuestionEl.textContent = data.tutor.followUpQuestion;
+          cefrEstimateEl.textContent = `Estimated level: ${data.tutor.cefrEstimate}`;
+
+          renderList(grammarNotesEl, data.tutor.grammarNotes, (note) => `${note.issue}: ${note.explanation}`);
+          renderList(pronunciationGuideEl, data.tutor.pronunciationGuide, (entry) => `${entry.word} → ${entry.soundsLike}`);
+
+          resultsEl.classList.remove("hidden");
+          setStatus("Done! Review feedback below.");
+
+          await trackProgress({
+            studentId,
+            activityId,
+            eventType: "chat_submitted",
+            payload: {
+              inputText: message,
+              correctedText: data.tutor.correctedText,
+              cefrEstimate: data.tutor.cefrEstimate,
+              grammarIssueCount: data.tutor.grammarNotes.length,
+              pronunciationWordCount: data.tutor.pronunciationGuide.length,
+              responseLatencyMs: Math.round(performance.now() - start),
+            },
+          });
+        } catch (error) {
+          setStatus(error.message || "Something went wrong.", true);
+        } finally {
+          sendBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
