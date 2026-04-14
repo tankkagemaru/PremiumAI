@@ -58,3 +58,15 @@ Why this is easier for POC:
 - The widget and API are on the same Vercel origin.
 - Browser preflight/CORS problems from OpenLearning `srcdoc` are avoided.
 - You can still update backend logic without editing OpenLearning HTML each time.
+
+
+## Troubleshooting: `FUNCTION_INVOCATION_FAILED`
+
+If `/api/chat` returns plain text with `FUNCTION_INVOCATION_FAILED`, the function crashed before returning JSON.
+
+Common causes:
+- Missing `openai` dependency in `package.json`
+- Missing `OPENAI_API_KEY` in Vercel env vars
+- Build/deploy not using latest commit
+
+After fixing, redeploy and retry.
