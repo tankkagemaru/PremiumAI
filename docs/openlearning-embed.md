@@ -8,8 +8,6 @@ Set the Vercel backend URL explicitly before loading the widget script:
 ```html
 <script>
   window.PLC_API_BASE_URL = "https://premium-ai-dusky.vercel.app";
-  // Optional: only if you configured PLC_CLIENT_KEY in Vercel env vars.
-  window.PLC_CLIENT_KEY = "YOUR_SHARED_CLIENT_KEY";
 </script>
 ```
 
@@ -27,7 +25,6 @@ If `PLC_API_BASE_URL` is not provided, it falls back to `window.location.origin`
 
 ## Optional environment variables
 
-- `PLC_CLIENT_KEY` (recommended for basic shared-secret protection from abuse)
 - `OPENLEARNING_WEBHOOK_URL` (if you want `/api/progress` to forward upstream)
 - `OPENLEARNING_API_KEY` (if upstream webhook requires bearer auth)
 - `OPENAI_MODEL` (defaults to `gpt-5.3-codex`)

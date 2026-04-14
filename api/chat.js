@@ -36,7 +36,7 @@ function setCorsHeaders(req, res) {
   }
 
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-PLC-Client-Key");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Max-Age", "86400");
 }
 
@@ -56,13 +56,6 @@ function normalizeStudentInput(body) {
   return "";
 }
 
-function isValidClientKey(req) {
-  const expectedClientKey = process.env.PLC_CLIENT_KEY;
-  if (!expectedClientKey) return true;
-  const provided = req.headers["x-plc-client-key"];
-  return provided === expectedClientKey;
-}
-
 module.exports = async function handler(req, res) {
   setCorsHeaders(req, res);
 
@@ -78,9 +71,6 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  if (!isValidClientKey(req)) {
-    return res.status(401).json({ error: "Invalid client key" });
-  }
 
   if (!process.env.OPENAI_API_KEY) {
     return res.status(500).json({ error: "OPENAI_API_KEY is not configured" });
