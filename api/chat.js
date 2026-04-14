@@ -5,45 +5,13 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const DEFAULT_ALLOWED_ORIGINS = [
-  "https://www.openlearning.com",
-  "https://openlearning.com",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-];
-
-function getAllowedOrigins() {
-  const configured = (process.env.OPENLEARNING_ORIGIN || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  return [...new Set([...configured, ...DEFAULT_ALLOWED_ORIGINS])];
-}
-
-function getCorsOrigin(req) {
-  const requestOrigin = req.headers.origin;
-  if (!requestOrigin) return null;
-  const allowedOrigins = getAllowedOrigins();
-  return allowedOrigins.includes(requestOrigin) ? requestOrigin : null;
-}
-
-function setCorsHeaders(req, res) {
-  const allowOrigin = getCorsOrigin(req);
-  if (allowOrigin) {
-    res.setHeader("Access-Control-Allow-Origin", allowOrigin);
-    res.setHeader("Vary", "Origin");
-  }
-
+function setCorsHeaders(_req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Max-Age", "86400");
 }
 
-function isOriginAllowed(req) {
-  if (!req.headers.origin) return true;
-  return Boolean(getCorsOrigin(req));
-}
 
 function isComplexWord(word) {
   return word.length >= 8;
@@ -59,9 +27,6 @@ function normalizeStudentInput(body) {
 module.exports = async function handler(req, res) {
   setCorsHeaders(req, res);
 
-  if (!isOriginAllowed(req)) {
-    return res.status(403).json({ error: "Origin not allowed" });
-  }
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();

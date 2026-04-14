@@ -260,7 +260,11 @@
             },
           });
         } catch (error) {
-          setStatus(error.message || "Something went wrong.", true);
+          const message =
+            error?.message && error.message.toLowerCase().includes("failed to fetch")
+              ? "Failed to fetch. Check PLC_API_BASE_URL, OPENLEARNING_ORIGIN CORS setting, and HTTPS URL."
+              : error.message || "Something went wrong.";
+          setStatus(message, true);
         } finally {
           sendBtn.disabled = false;
         }
