@@ -38,3 +38,4 @@ This usually means the browser blocked the network call before JSON parsing.
 2. Ensure `PLC_API_BASE_URL` uses HTTPS and has no trailing slash mismatch.
 3. Redeploy after changing env vars.
 4. In browser DevTools > Network, inspect the failing request and confirm CORS headers are present.
+5. If request is blocked before network, check OpenLearning Content-Security-Policy (`connect-src`) allowlist for your Vercel domain.
